@@ -1,11 +1,11 @@
+const https = require('https');
+const options = {
+  headers: {
+    'user-agent': 'Isteru'
+  }
+}
 function getUser(username) {
   const url = `https://api.github.com/users/${username}`;
-  const https = require('https');
-  const options = {
-    headers: {
-      'user-agent': 'Isteru'
-    }
-  }
 
   const req = https.get(url, options, res => {
   console.log(`statusCode: ${res.statusCode}`)
@@ -22,15 +22,10 @@ req.on('error', error => {
   console.error(error)
 })
 }
+//returns a list of all repos of a user
 async function getRepos(username) {
   return new Promise(function(resolve, reject) {
     const url = `https://api.github.com/users/${username}/repos`;
-    const https = require('https');
-    const options = {
-      headers: {
-        'user-agent': 'Isteru'
-      }
-    }
     const req = https.get(url, options, res => {
     console.log(`statusCode: ${res.statusCode}`)
     let raw = '';
@@ -48,19 +43,14 @@ async function getRepos(username) {
   })
 });
 }
+//Returns a list of all people who collaborated with user
 async function getAllUserCollaborators(username) {
   const repos = await getRepos(username);
-  const https = require('https');
-  const options = {
-    headers: {
-      'user-agent': 'Isteru'
-    }
-  }
   let collaborators=[];
   let promises = [];
   for (repo of repos) {
     promises.push(new Promise(function(resolve, reject) {
-      const url = `https://api.github.com/users/${username}/${repo.name}/collaborators`
+      const url = `https://api.github.com/repos/${username}/${repo.name}/collaborators`
       const req = https.get(url, options, res => {
         console.log(`statusCode: ${res.statusCode}`)
         if(res.statusCode==200) {
@@ -79,14 +69,14 @@ async function getAllUserCollaborators(username) {
       })
     }))
   }
-  Promise.allSettled(promises).then((results) => results.forEach((result) => {
+  await Promise.allSettled(promises).then((results) => results.forEach((result) => {
     if(result.status='fulfilled') {
       let repoCollaborators = result.value;
       for(collaborator of repoCollaborators) {
         collaborators.push(collaborator);
       }
     }
-  })).then( () => console.log(collaborators.length));
+  })).then( () => console.log(collaborators.length)).catch( () => console.log("couldn't access"));
+  return collaborators;
 }
-
-getAllUserCollaborators('esjmb');
+getAllUserCollaborators("Isteru").then((res) => {console.log(res);})
