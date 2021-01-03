@@ -16,5 +16,16 @@ app.use(express.static(__dirname + "/static/"));
 app.get('/', (req, res) => {
 res.sendFile(path.join(__dirname + '/index.html'));
 })
+app.get('/data.json', (req, res) => {
+  var names = ['Anne', 'Bill', 'Bob', 'James', 'Michael'];
+  var data = '[';
+  for (name of names) {
+    data += `{"name": "${name}","commits": ${20 + Math.floor(Math.random()*20)}},`
+  }
+  data = data.substring(0,data.length-1);
+  data += `]`;
+  res.write(data);
+  res.end();
+})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
