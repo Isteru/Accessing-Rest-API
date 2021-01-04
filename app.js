@@ -6,6 +6,8 @@ const octokit = new Octokit({
   userAgent: 'Isteru',
   auth: "token",
 });
+let username = 'Isteru';
+let repo = 'Accessing-Rest-API'
 // Some constances
 const express = require('express')
 const app = express()
@@ -17,15 +19,26 @@ app.get('/', (req, res) => {
 res.sendFile(path.join(__dirname + '/index.html'));
 })
 app.get('/data.json', (req, res) => {
-  var names = ['Anne', 'Bill', 'Bob', 'James', 'Michael'];
-  var data = '[';
-  for (name of names) {
-    data += `{"name": "${name}","commits": ${20 + Math.floor(Math.random()*20)}},`
+  octokit.request('GET /repos/{username}/{repo}/stats/punch_card', {
+  username: username,
+  repo: repo
+}).then(({data}) => {
+  let days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let dayCounts = new Array(7).fill(0);
+  for(dayHour of data) {
+      let dayNum=dayHour[0];
+      dayCounts[dayNum]+=dayHour[2];
   }
-  data = data.substring(0,data.length-1);
-  data += `]`;
-  res.write(data);
+  let result = '[';
+  for (var i = 0; i < days.length; i++) {
+    result += `{"Day": "${days[i]}", "commits": ${dayCounts[i]}},`
+  }
+  result = result.substring(0, result.length-1);
+  result += ']';
+  res.write(result);
   res.end();
+})
+
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
