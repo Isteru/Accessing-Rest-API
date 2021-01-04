@@ -28,9 +28,8 @@ var simulation = d3.forceSimulation()
 /*d3.select("input[type=range]")
     .on("input", inputted);
 */
-d3.json("/json/data.json", function(error, graph) {
+d3.json("/graph.json", function(error, graph) {
   if (error) throw error;
-
   simulation
       .nodes(graph.nodes)
       .on("tick", ticked);

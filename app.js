@@ -38,14 +38,15 @@ function formatGraph(languages) {
   }
   formatted = formatted.substring(0,formatted.length-1);
   formatted += `] }`;
+  return formatted;
 }
 
 const octokit = new Octokit({
   userAgent: 'Isteru',
-  auth: "cd956ceeeac308e7199cb9aaa4bc60be85566a69",
+  auth: "938611752a2c24b6cc7fc1901b8508127d9ef932",
 });
-let username = 'Isteru';
-let repo = 'Accessing-Rest-API'
+let username = 'facebook';
+let repo = 'Ax'
 // Some constances
 const express = require('express')
 const app = express()
@@ -76,38 +77,47 @@ app.get('/data.json', (req, res) => {
   res.write(result);
   res.end();
 })
-
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
-let languages = new Map();
-octokit.repos.listForUser({
-  username:username,
-}).then (({data}) => {
-  for(var repo of data) {
-    octokit.repos.listLanguages({
-      owner:username,
-      repo:repo.name,
+app.get('/graph.json', (req, res) => {
+    let languages = new Map();
+    octokit.repos.listForUser({
+      username:username,
     }).then (({data}) => {
-      for (var language in data) {
-        let node;
-        if (!languages.has(language)) {
-          node = new languageNode(language);
-        }
-        else {
-          node = languages.get(language);
-        }
-        node.totalBytes += data[language];
-        languages.set(language,node);
+      waitForAllResponses = [];
+      for(var repo of data) {
+        waitForAllResponses.push(new Promise (function (resolve, reject) {
+          octokit.repos.listLanguages({
+            owner:username,
+            repo:repo.name,
+          }).then (({data}) => {
+            for (var language in data) {
+              let node;
+              if (!languages.has(language)) {
+                node = new languageNode(language);
+              }
+              else {
+                node = languages.get(language);
+              }
+              node.totalBytes += data[language];
+              languages.set(language,node);
+            }
+            for(var firstLanguage in data) {
+              for (var secondLanguage in data) {
+                if (firstLanguage !== secondLanguage) {
+                  languages.get(firstLanguage).addLanguage(secondLanguage);
+                }
+              }
+            }
+            resolve(0);
+          })
+        }))
       }
-      for(var firstLanguage in data) {
-        for (var secondLanguage in data) {
-          if (firstLanguage !== secondLanguage) {
-            languages.get(firstLanguage).addLanguage(secondLanguage);
-          }
-        }
-      }
+      Promise.allSettled(waitForAllResponses).then(()=> {
+        res.write(formatGraph(languages));
+        res.end();
+      })
     })
-  }
 })
