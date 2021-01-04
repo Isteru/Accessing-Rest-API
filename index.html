@@ -1,94 +1,73 @@
-<!-- Code from d3-graph-gallery.com -->
 <!DOCTYPE html>
-<meta charset="utf-8">
+<style>
 
-<!-- Load d3.js -->
-<script src="https://d3js.org/d3.v4.js"></script>
+label {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
 
-<!-- Create a div where the graph will take place -->
-<div id="my_dataviz"></div>
-
-<!-- Color scale -->
-<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-
+</style>
+<canvas width="960" height="600"></canvas>
+<!--<label><input style="width:240px;" type="range" min="0" max="1" step="any" value="0.5"> Link Strength</label>-->
+<script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
-// set the dimensions and margins of the graph
-var width = 450
-    height = 450
-    margin = 40
+var canvas = document.querySelector("canvas"),
+    context = canvas.getContext("2d"),
+    width = canvas.width,
+    height = canvas.height;
 
-// The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
-var radius = Math.min(width, height) / 2 - margin
+var simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(function(d) { return d.id; }).strength(0.05))
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    // .alphaDecay(0);
 
-// append the svg object to the div called 'my_dataviz'
-var svg = d3.select("#my_dataviz")
-  .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-  .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+/*d3.select("input[type=range]")
+    .on("input", inputted);
+*/
+d3.json("/json/data.json", function(error, graph) {
+  if (error) throw error;
 
-// Create dummy data
-// This code originally taken from
-// https://www.d3-graph-gallery.com/graph/pie_annotation.html
+  simulation
+      .nodes(graph.nodes)
+      .on("tick", ticked);
 
-// set the dimensions and margins of the graph
-var width = 450
-    height = 450
-    margin = 40
+  simulation.force("link")
+      .links(graph.links);
 
-// The radius of the pieplot is half the width or half the height (smallest one). I subtract a bit of margin.
-var radius = Math.min(width, height) / 2 - margin
+  function ticked() {
+    context.clearRect(0, 0, width, height);
 
-// append the svg object to the div called 'my_dataviz'
-var svg = d3.select("#my_dataviz")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+    context.beginPath();
+    graph.links.forEach(drawLink);
+    context.strokeStyle = "#aaa";
+    context.stroke();
 
-
-d3.json("/data.json", function (error,data) {
-    console.log(data);
-    // set the color scale
-    var color = d3.scaleOrdinal()
-	.domain(data)
-	.range(d3.schemeSet2);
-
-    // Compute the position of each group on the pie:
-    var pie = d3.pie()
-	.value(function(d) {return d.value.commits; })
-    var data_ready = pie(d3.entries(data))
-    // Now I know that group A goes from 0 degrees to x degrees and so on.
-
-    // shape helper to build arcs:
-    var arcGenerator = d3.arc()
-	.innerRadius(0)
-	.outerRadius(radius)
-
-    // Build the pie chart: Basically, each part of the pie is a path that we build using the arc function.
-    svg
-	.selectAll('mySlices')
-	.data(data_ready)
-	.enter()
-	.append('path')
-	.attr('d', arcGenerator)
-	.attr('fill', function(d){ return(color(d.data.value.Day)) })
-	.attr("stroke", "black")
-	.style("stroke-width", "2px")
-	.style("opacity", 0.7)
-
-    // Now add the annotation. Use the centroid method to get the best coordinates
-    svg
-	.selectAll('mySlices')
-	.data(data_ready)
-	.enter()
-	.append('text')
-	.text(function(d){return (d.data.value.commits >0) ? d.data.value.Day + ":" + d.data.value.commits : ""})
-	.attr("transform", function(d) { return "translate(" + arcGenerator.centroid(d) + ")";  })
-	.style("text-anchor", "middle")
-	.style("font-size", 17)
+    context.beginPath();
+    graph.nodes.forEach(drawNode);
+    //context.fillStyle='blue'
+    context.fill();
+    context.strokeStyle = "#fff";
+    context.stroke();
+  }
 });
+
+/*function inputted() {
+  simulation.force("link").strength(+this.value);
+  simulation.alpha(1).restart();
+}*/
+
+function drawLink(d) {
+  context.moveTo(d.source.x, d.source.y);
+  context.lineTo(d.target.x, d.target.y);
+}
+
+function drawNode(d) {
+  context.moveTo(d.x + 3, d.y);
+  context.arc(d.x, d.y, 10, 0, 2 * Math.PI);
+}
+
 </script>

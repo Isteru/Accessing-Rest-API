@@ -20,9 +20,29 @@ class languageNode {
   }
 }
 
+function formatGraph(languages) {
+  let languageId = new Map();
+  let formatted = `{"nodes": [`;
+  id = 0;
+  for(var language of languages.values()) {
+    id++;
+    formatted += `{"id": ${id}, "name": "${language.languageName}"},`
+    languageId.set(language.languageName, id);
+  }
+  formatted = formatted.substring(0, formatted.length-1);
+  formatted += `], "links": [`
+  for(var language of languages.values()) {
+    for(var otherLang of language.connectionList.keys()) {
+      formatted += `{ "source": ${languageId.get(language.languageName)}, "target": ${languageId.get(otherLang)}},`
+    }
+  }
+  formatted = formatted.substring(0,formatted.length-1);
+  formatted += `] }`;
+}
+
 const octokit = new Octokit({
   userAgent: 'Isteru',
-  auth: "token",
+  auth: "cd956ceeeac308e7199cb9aaa4bc60be85566a69",
 });
 let username = 'Isteru';
 let repo = 'Accessing-Rest-API'
