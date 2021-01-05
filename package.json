@@ -1,0 +1,28 @@
+{
+  "name": "se_metric_visualization",
+  "version": "1.0.0",
+  "description": "Project for college Software Engineering module, focuses on exploring languages used by a specified github user",
+  "main": "app.js",
+  "private": true,
+  "dependencies": {
+    "@octokit/rest": "^18.0.12",
+    "d3-scale-chromatic": "^2.0.0",
+    "d3.js": "0.0.2-security",
+    "dot-env": "^0.0.1",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Isteru/Accessing-Rest-API.git"
+  },
+  "author": "Adam Ogórek",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Isteru/Accessing-Rest-API/issues"
+  },
+  "homepage": "https://github.com/Isteru/Accessing-Rest-API#readme"
+}
